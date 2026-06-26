@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+
+# Virtual env
+.venv/
+venv/
+env/
+
+# IDE / editor
+.idea/
+.vscode/
+*.swp
+
+# Training artifacts
+checkpoints/
+runs/
+wandb/
+*.pt
+*.bin
+*.safetensors
+
+# Competition data / generated artifacts
+data/
+predictions/
+reports/
+競賽說明文件/
+
+# Keep reproducibility source files, not local generated outputs
+!reports/.gitkeep
+
+# Local logs / scratch
+*.log
+.DS_Store
+Thumbs.db
