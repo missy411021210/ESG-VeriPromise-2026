@@ -1,11 +1,6 @@
 """
 Run inference for the VeriPromiseESG multi-task checkpoint.
 
-讀取 test / validation CSV
-載入訓練好的 best.pt
-輸出四個任務的預測 label
-可選擇輸出每個類別的機率
-
 Example:
     python predict_multitask.py \
         --csv data/vpesg4k_val_1000.csv \
@@ -84,7 +79,6 @@ def parse_args() -> argparse.Namespace:
     )
     return p.parse_args()
 
-#偵測輸入的 CSV 檔案中是否包含標準的 4 個任務答案欄位，分辨驗證集、測試集
 def compute_metrics(df: pd.DataFrame, preds: Dict[str, List[str]]) -> Dict[str, Any] | None:
     if not all(task in df.columns for task in TASKS):
         return None
@@ -171,7 +165,6 @@ def main() -> None:
     use_bf16 = bool(args.bf16 and device.type == "cuda")
     pred_ids_by_task: Dict[str, List[int]] = {task: [] for task in TASKS}
     probs_by_task: Dict[str, List[List[float]]] = {task: [] for task in TASKS}
-    # 推論
     with torch.no_grad():
         for padded, _labels in tqdm(loader, desc="predict", dynamic_ncols=True):
             input_ids = padded["input_ids"].to(device, non_blocking=True)
@@ -186,7 +179,6 @@ def main() -> None:
                     probs_by_task[task].extend(torch.softmax(logits[task], dim=-1).cpu().tolist())
                 pred_ids = logits[task].argmax(dim=-1).cpu().tolist()
                 pred_ids_by_task[task].extend(pred_ids)
-    # 後處理 與 結果儲存
     if args.hierarchy:
         pred_ids_by_task = apply_hierarchy(pred_ids_by_task)
     preds = {

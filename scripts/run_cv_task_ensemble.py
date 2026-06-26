@@ -1,14 +1,6 @@
 #!/usr/bin/env python
 """Run 5-fold task/model ensemble for VeriPromiseESG.
 
-自動化訓練腳本
-自動跑：多模型 × 四個任務 × 5-fold
-1. 對每個模型、每個任務、每個 fold 訓練
-2. 產生 fold validation 預測
-3. 產生 fold test 預測
-4. 建立 OOF validation
-5. 建立每個模型的 test 預測
-
 The default candidate set trains selected model families for all four tasks.
 
 Existing 5-fold models:

@@ -1,13 +1,6 @@
 """
 VeriPromiseESG 2026 — multi-task fine-tuning script.
 
-讀取訓練資料
-載入 Hugging Face AutoModel
-建立四個分類 head
-訓練指定任務
-計算 validation macro-F1
-儲存 best.pt
-
 Backbone : Qwen/Qwen3-Embedding-0.6B (last-token pooling, left padding).
 Input    : the `data` column of the training CSV.
 Tasks    : 4 single-label classification heads, equal-weighted CE losses.
@@ -88,7 +81,6 @@ def normalize_label(val: Any) -> str:
         return "N/A"
     return s
 
-# 領域知識後處理
 def apply_hierarchy(preds: Dict[str, List[int]]) -> Dict[str, List[int]]:
     """Enforce task consistency implied by the competition labels."""
     fixed = {t: list(vals) for t, vals in preds.items()}
@@ -96,7 +88,7 @@ def apply_hierarchy(preds: Dict[str, List[int]]) -> Dict[str, List[int]]:
         promise = ID2LABEL["promise_status"][fixed["promise_status"][i]]
         evidence = ID2LABEL["evidence_status"][fixed["evidence_status"][i]]
 
-        if promise == "No":# 強制修正
+        if promise == "No":
             fixed["evidence_status"][i] = LABEL2ID["evidence_status"]["N/A"]
             fixed["evidence_quality"][i] = LABEL2ID["evidence_quality"]["N/A"]
             fixed["verification_timeline"][i] = LABEL2ID["verification_timeline"]["N/A"]
@@ -156,7 +148,6 @@ def multitask_loss(
 
 
 # ----------------------------- Dataset --------------------------------
-#讀取 Pandas DataFrame，將文本取出，並將 4 個任務的文字標籤轉為張量（Tensor）
 class ESGDataset(Dataset):
     def __init__(self, df: pd.DataFrame, tokenizer, max_length: int = 512):
         self.texts = df["data"].astype(str).tolist()
@@ -182,7 +173,6 @@ class ESGDataset(Dataset):
             item[t] = self.label_ids[t][idx]
         return item
 
-#補零到該 Batch 的最大長度，並把 4 個任務的標籤打包。
 @dataclass
 class Collator:
     tokenizer: Any
@@ -372,7 +362,6 @@ def evaluate(
     weighted = float(sum(TASK_WEIGHTS[t] * macro[t] for t in TASKS))
     return {"val_loss": val_loss, "macro": macro, "per_class": per_class, "weighted": weighted}
 
-# 轉成純文字報告
 def format_eval(metrics: Dict[str, Any]) -> str:
     lines = []
     for t in TASKS:
